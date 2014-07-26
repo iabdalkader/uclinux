@@ -319,6 +319,16 @@ void __init stm32_iomux_init(void)
 		/*
 		 * Pin configuration for the UARTs.
 		 */
+#if defined(CONFIG_STM32_USART2)
+        gpio_dsc.port = 0;
+        gpio_dsc.pin  = 2;
+        stm32f2_gpio_config(&gpio_dsc, STM32F2_GPIO_ROLE_USART2);
+
+        gpio_dsc.port = 0;
+        gpio_dsc.pin  = 3;
+        stm32f2_gpio_config(&gpio_dsc, STM32F2_GPIO_ROLE_USART2);
+#endif
+
 #if defined(CONFIG_STM32_USART3)
 		gpio_dsc.port = 2;
 		gpio_dsc.pin  = 10;

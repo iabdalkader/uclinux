@@ -80,7 +80,7 @@
 #define STM32_DBG_USART_BASE	STM32_USART1_BASE
 #else
 /* STM32F2 hardware reference is the STM3220G-EVAL board */
-#define STM32_DBG_USART_BASE	STM32_USART3_BASE
+#define STM32_DBG_USART_BASE	STM32_USART2_BASE
 #endif
 
 /*
