@@ -29,6 +29,7 @@
 #include <linux/spi/spi.h>
 #include <linux/spi/spi_stm32.h>
 #include <linux/spi/flash.h>
+#include <linux/delay.h>
 #include <mach/stm32.h>
 #include <mach/platform.h>
 #include <mach/clock.h>
@@ -257,101 +258,32 @@ void __init stm32_spi_init(void)
 	platform_device_register(&spi_stm32_dev6);
 #endif
 
-	if (p == PLATFORM_STM32_STM_SOM) {
+#if 0
+    #define SPI_SLAVE_CS_GPIO (67)
+    static struct spi_stm32_slv controller_data = {
+        .cs_gpio = SPI_SLAVE_CS_GPIO,
+        .timeout = 3,
+    };
 
-		/* This assumes that there is an SPI Flash device
-		 * handwired to SPI5 on the breadboard area of SOM-BSB-EXT.
-		 * SPI Flash can be accessed either via SPIDEV interface
-		 * and this takes precedence if SPIDEV is enabled in the kernel.
-		 * If SPIDEV is disabled, then SPI Flash can be
-		 * accessed via the Flash MTD interface
-		 */
-#if defined(CONFIG_STM32_SPI5) && \
-	(defined(CONFIG_MTD_M25P80) || defined(CONFIG_SPI_SPIDEV))
+    static struct spi_board_info spi_slave_bi = {
+        .modalias = "spi_stm32",
+        .max_speed_hz = 32000000,
+        .bus_num = 3,
+        .chip_select = 0,
+        .mode = SPI_MODE_0,
+        .controller_data = &controller_data,
+    };
 
-		/* 
-		 * Flash MTD partitioning.
-		 * This is used only if CONFIG_SPIDEV is undefined
-		 */
-#if !defined(CONFIG_SPI_SPIDEV)
+    /*
+     * Set up the Chip Select GPIO for the SPI Flash
+     */
+    gpio_direction_output(SPI_SLAVE_CS_GPIO, 1);
 
-		/*
-		 * SPI Flash partitioning:
-		 */
-#		define FLASH_JFFS2_OFFSET__STM32F4_SOM	(1024 * 1024 * 1)
-#		define FLASH_SIZE__STM32F4_SOM		(1024 * 1024 * 4)
-		static struct mtd_partition 
-			spi_stm32_flash_partitions__stm32f4_som[] = {
-			{
-				.name = "spi_flash_part0",
-				.size = FLASH_JFFS2_OFFSET__STM32F4_SOM,
-				.offset = 0,
-			},
-			{
-				.name = "spi_flash_part1",
-				.size = FLASH_SIZE__STM32F4_SOM - 
-					FLASH_JFFS2_OFFSET__STM32F4_SOM,
-				.offset = FLASH_JFFS2_OFFSET__STM32F4_SOM,
-			},
-		};
-
-		/*
-		 * SPI Flash
- 		 */
-		static struct flash_platform_data 
-			spi_stm32_flash_data__stm32f4_som = {
-			.name = "m25p32",
-			.parts =  spi_stm32_flash_partitions__stm32f4_som,
-			.nr_parts = 
-			ARRAY_SIZE(spi_stm32_flash_partitions__stm32f4_som),
-			.type = "m25p32",
-		};
+    /*
+     * Register SPI slaves
+     */
+    spi_register_board_info(&spi_slave_bi,
+            sizeof(spi_slave_bi) /
+            sizeof(struct spi_board_info));
 #endif
-
-#define SPI_FLASH_CS_PORT__STM32F4_SOM		7
-#define SPI_FLASH_CS_PIN__STM32F4_SOM		5
-#define SPI_FLASH_CS_GPIO__STM32F4_SOM		\
-	STM32_GPIO_PORTPIN2NUM(			\
-		SPI_FLASH_CS_PORT__STM32F4_SOM, \
-		SPI_FLASH_CS_PIN__STM32F4_SOM)
-
-		/*
- 		 * SPI slave
- 		 */
-		static struct spi_stm32_slv 
-			spi_stm32_flash_slv__stm32f4_som  = {
-			.cs_gpio = SPI_FLASH_CS_GPIO__STM32F4_SOM,
-			.timeout = 3,
-		};
-		static struct spi_board_info 
-			spi_stm32_flash_info__stm32f4_som = {
-			/*
-			 * SPIDEV has precedence over Flash MTD
-			 */
-#if defined(CONFIG_SPI_SPIDEV)
-			.modalias = "spidev",
-#else
-			.modalias = "m25p32",
-			.platform_data = &spi_stm32_flash_data__stm32f4_som,
-#endif
-			.max_speed_hz = 25000000,
-			.bus_num = 4,
-			.chip_select = 0,
-			.controller_data = &spi_stm32_flash_slv__stm32f4_som,
-			.mode = SPI_MODE_3,
-		};
-
-		/*
-		 * Set up the Chip Select GPIO for the SPI Flash
-		 */
-		gpio_direction_output(SPI_FLASH_CS_GPIO__STM32F4_SOM, 1);
-
-		/*
-		 * Register SPI slaves
-		 */
-		spi_register_board_info(&spi_stm32_flash_info__stm32f4_som,
-			sizeof(spi_stm32_flash_info__stm32f4_som) / 
-			sizeof(struct spi_board_info));
-#endif
-	}
 }
