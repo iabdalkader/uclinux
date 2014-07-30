@@ -116,6 +116,7 @@ extern int __must_check gpiochip_remove(struct gpio_chip *chip);
  * or when sleeping may be involved.
  */
 extern int gpio_request(unsigned gpio, const char *label);
+extern int gpio_request_one(unsigned gpio, unsigned long flags, const char *label);
 extern void gpio_free(unsigned gpio);
 
 extern int gpio_direction_input(unsigned gpio);
@@ -135,6 +136,16 @@ extern void __gpio_set_value(unsigned gpio, int value);
 extern int __gpio_cansleep(unsigned gpio);
 
 extern int __gpio_to_irq(unsigned gpio);
+
+#define GPIO_DIR_OUT	(0 << 0)
+#define GPIO_DIR_IN	(1 << 0)
+
+#define GPIO_INIT_LOW	(0 << 1)
+#define GPIO_INIT_HIGH	(1 << 1)
+
+#define GPIOF_IN		(GPIO_DIR_IN)
+#define GPIOF_OUT_INIT_LOW	(GPIO_DIR_OUT | GPIO_INIT_LOW)
+#define GPIOF_OUT_INIT_HIGH	(GPIO_DIR_OUT | GPIO_INIT_HIGH)
 
 #ifdef CONFIG_GPIO_SYSFS
 

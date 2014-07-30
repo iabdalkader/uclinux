@@ -1237,6 +1237,23 @@ void gpio_free(unsigned gpio)
 }
 EXPORT_SYMBOL_GPL(gpio_free);
 
+int gpio_request_one(unsigned gpio, unsigned long flags, const char *label)
+{
+    int err;
+
+    err = gpio_request(gpio, label);
+    if (err)
+        return err;
+
+    if (flags & GPIO_DIR_IN)
+        err = gpio_direction_input(gpio);
+    else
+        err = gpio_direction_output(gpio,
+                (flags & GPIO_INIT_HIGH) ? 1 : 0);
+
+    return err;
+}
+EXPORT_SYMBOL_GPL(gpio_request_one);
 
 /**
  * gpiochip_is_requested - return string iff signal was requested
