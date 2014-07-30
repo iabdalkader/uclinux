@@ -311,55 +311,12 @@ void __init stm32_iomux_init(void)
 	 */
 	platform = stm32_platform_get();
 	switch (platform) {
-
-#ifndef CONFIG_ARCH_STM32F1
 	/* STM32F2-based platforms */
 	case PLATFORM_STM32_STM32429_DISCO:
 
 		/*
 		 * Pin configuration for the UARTs.
 		 */
-#if defined(CONFIG_STM32_USART2)
-        gpio_dsc.port = 0;
-        gpio_dsc.pin  = 2;
-        stm32f2_gpio_config(&gpio_dsc, STM32F2_GPIO_ROLE_USART2);
-
-        gpio_dsc.port = 0;
-        gpio_dsc.pin  = 3;
-        stm32f2_gpio_config(&gpio_dsc, STM32F2_GPIO_ROLE_USART2);
-#endif
-
-#if defined(CONFIG_STM32_USART3)
-		gpio_dsc.port = 2;
-		gpio_dsc.pin  = 10;
-		stm32f2_gpio_config(&gpio_dsc, STM32F2_GPIO_ROLE_USART3);
-
-		gpio_dsc.port = 2;
-		gpio_dsc.pin  = 11;
-		stm32f2_gpio_config(&gpio_dsc, STM32F2_GPIO_ROLE_USART3);
-#endif
-
-		/*
-		 * Pin configuration for the User LED of the STM32F429ZI-DISCO board.
-		 */
-#if defined(CONFIG_GPIOLIB) && defined(CONFIG_GPIO_SYSFS)
-
-		/* PG13 = LED LD3 */
-		gpio_dsc.port = 6;
-		gpio_dsc.pin  = 13;
-		stm32f2_gpio_config(&gpio_dsc, STM32F2_GPIO_ROLE_OUT);
-
-		/* PG14 = LED LD4 */
-		gpio_dsc.port = 6;
-		gpio_dsc.pin  = 14;
-		stm32f2_gpio_config(&gpio_dsc, STM32F2_GPIO_ROLE_OUT);
-#endif /* CONFIG_GPIOLIB */
-		break;
-
-	case PLATFORM_STM32_STM3220G_EVAL:
-	case PLATFORM_STM32_STM3240G_EVAL:
-	case PLATFORM_STM32_STM_SOM:
-
 #if defined(CONFIG_STM32_USART1)
 		gpio_dsc.port = 0;
 		gpio_dsc.pin  = 9;
@@ -369,6 +326,15 @@ void __init stm32_iomux_init(void)
 		gpio_dsc.pin  = 10;
 		stm32f2_gpio_config(&gpio_dsc, STM32F2_GPIO_ROLE_USART1);
 #endif
+#if defined(CONFIG_STM32_USART2)
+        gpio_dsc.port = 0;
+        gpio_dsc.pin  = 2;
+        stm32f2_gpio_config(&gpio_dsc, STM32F2_GPIO_ROLE_USART2);
+
+        gpio_dsc.port = 0;
+        gpio_dsc.pin  = 3;
+        stm32f2_gpio_config(&gpio_dsc, STM32F2_GPIO_ROLE_USART2);
+#endif
 #if defined(CONFIG_STM32_USART3)
 		gpio_dsc.port = 2;
 		gpio_dsc.pin  = 10;
@@ -378,7 +344,15 @@ void __init stm32_iomux_init(void)
 		gpio_dsc.pin  = 11;
 		stm32f2_gpio_config(&gpio_dsc, STM32F2_GPIO_ROLE_USART3);
 #endif
+#if defined(CONFIG_STM32_USART3)
+		gpio_dsc.port = 2;
+		gpio_dsc.pin  = 10;
+		stm32f2_gpio_config(&gpio_dsc, STM32F2_GPIO_ROLE_USART3);
 
+		gpio_dsc.port = 2;
+		gpio_dsc.pin  = 11;
+		stm32f2_gpio_config(&gpio_dsc, STM32F2_GPIO_ROLE_USART3);
+#endif
 #if defined(CONFIG_STM32_MAC)
 		do {
 			static struct stm32f2_gpio_dsc mii_gpio[] = {
@@ -434,7 +408,21 @@ void __init stm32_iomux_init(void)
 #error		IOMUX for STM32 SPI3 undefined
 #endif
 #if defined(CONFIG_STM32_SPI4)
-#error		IOMUX for STM32 SPI4 undefined
+		gpio_dsc.port = 4;	/* CLCK */
+		gpio_dsc.pin  = 2;
+		stm32f2_gpio_config(&gpio_dsc, STM32F2_GPIO_ROLE_SPI4);
+
+		gpio_dsc.port = 4;	/* DI */
+		gpio_dsc.pin  = 5;
+		stm32f2_gpio_config(&gpio_dsc, STM32F2_GPIO_ROLE_SPI4);
+
+		gpio_dsc.port = 4;	/* DO */
+		gpio_dsc.pin  = 6;
+		stm32f2_gpio_config(&gpio_dsc, STM32F2_GPIO_ROLE_SPI4);
+
+		gpio_dsc.port = 4;	/* CS */
+		gpio_dsc.pin  = 3;
+		stm32f2_gpio_config(&gpio_dsc, STM32F2_GPIO_ROLE_OUT);
 #endif
 #if defined(CONFIG_STM32_SPI5)
 		gpio_dsc.port = 7;	/* CLCK */
@@ -488,30 +476,8 @@ void __init stm32_iomux_init(void)
 		} while (0);
 #endif /* CONFIG_MMC_ARMMMCI */
 
-#if defined(CONFIG_GPIOLIB) && defined(CONFIG_GPIO_SYSFS)
-
-	/*
-	 * Pin configuration for the User LED of the SOM-BSB-EXT baseboard.
-	 * !!! That GPIO may have other connections on other baseboards.
-	 */
-	if (platform == PLATFORM_STM32_STM_SOM) {
-		/* PB2 = LED DS4 */
-		gpio_dsc.port = 1;
-		gpio_dsc.pin  = 2;
-		stm32f2_gpio_config(&gpio_dsc, STM32F2_GPIO_ROLE_OUT);
-	}
-
-#endif /* CONFIG_GPIOLIB */
-
 		break;
-#else
-	/* STM32F1-based platforms */
-	case PLATFORM_STM32_SWISSEMBEDDED_COMM:
-		/*
-		 * Rely on the IOMUX configuration initialized by the bootloader
-		 */
-		break;
-#endif
+
 	default:
 		printk(KERN_WARNING "%s: unsupported platform %d\n", __func__,
 			platform);
